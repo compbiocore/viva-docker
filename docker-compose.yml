@@ -1,0 +1,15 @@
+version: '3'
+services:
+  viva-notebook:
+    image: compbiocore/viva-notebook
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+    volumes:
+      - ./:/notebook/data
+    ports:
+      - 8888:8888
+    working_dir: /notebook
+  viva:
+    image: compbiocore/viva-cli
+    volumes:
+      - ./:/data
