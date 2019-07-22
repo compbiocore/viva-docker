@@ -20,7 +20,8 @@ RUN apt-get install -y libcairo2-dev \
                        libxss1 \
                        libnss3 \
                        libssl1.0-dev \
-                       libasound-dev
+                       libasound-dev \
+                       xvfb
 
 #Install Electron
 RUN wget https://github.com/electron/electron/releases/download/v4.0.4/electron-v4.0.4-linux-x64.zip
@@ -39,5 +40,7 @@ COPY viva /script
 RUN chmod 777 /script/viva
 
 WORKDIR /data
+
+CMD ["xvfb-run", "julia"]
 
 ENTRYPOINT ["/script/viva"]

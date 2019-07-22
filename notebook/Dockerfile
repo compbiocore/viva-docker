@@ -66,5 +66,7 @@ RUN julia -e 'import Pkg; Pkg.update()' && \
     rm -rf $HOME/.local && \
     fix-permissions $JULIA_PKGDIR $CONDA_DIR/share/jupyter
 
-COPY VIVA.ipynb /notebook
-WORKDIR /notebook
+RUN mkdir $HOME/notebook
+RUN mkdir $HOME/notebook/data
+COPY VIVA.ipynb $HOME/notebook
+WORKDIR $HOME/notebook

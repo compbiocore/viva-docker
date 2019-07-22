@@ -1,4 +1,5 @@
 #!/usr/bin/env julia
+
 println()
 println("Welcome to VIVA.")
 println()
@@ -22,11 +23,11 @@ using GeneticVariation
 println("5/5 DelimitedFiles")
 using DelimitedFiles
 
-
 println()
 println("Finished loading packages!")
 println()
 
+#=
 function test_parse_main(ARGS::Vector{String})
 
     # initialize the settings (the description prints text when help is called)
@@ -116,16 +117,15 @@ function test_parse_main(ARGS::Vector{String})
 
 #activate block to show all argument keys
 
-#=
+
     for (key,val) in parsed_args
         println("  $key  =>  $(repr(val))")
     end
-    =#
 
-    return parsed_args
+        return parsed_args
 end
-
-parsed_args = test_parse_main(ARGS)
+=#
+parsed_args = VariantVisualization.test_parse_main(ARGS)
 
 #filter vcf and load matrix of filtered vcf records
 
@@ -133,7 +133,7 @@ vcf_filename = (parsed_args["vcf_file"])
 println("Reading $vcf_filename ...")
 println()
 
-reader = VCF.Reader(open(vcf_filename, "r"))
+reader = GeneticVariation.VCF.Reader(open(vcf_filename, "r"))
 sample_names = get_sample_names(reader)
 
 save_ext = parsed_args["save_format"]
@@ -144,6 +144,11 @@ VariantVisualization.checkfor_outputdirectory(parsed_args["output_directory"])
 output_directory=parsed_args["output_directory"]
 
 #=
+
+#improvement note for developers: implement feature to display VCF summary stats when no plotting options are chosen. This was implemented with VCFTools.jl package which is not supported in Julia v1+. Would need to find new function, perhaps in GeneticVariation.jl
+#nrecords() and nsamples() were from VCFTools.jl package which is no longer supported
+#can also implement this as flag option to display number variants and samples before filtering
+
 if parsed_args["avg_dp"] == nothing && parsed_args["heatmap"] == nothing
     number_records = nrecords((parsed_args["vcf_file"]))
     number_samples = nsamples((parsed_args["vcf_file"]))
@@ -276,7 +281,10 @@ if parsed_args["heatmap"] == "genotype"
 
 
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
-            println("Can not select samples with phenotype matrix provided. Please include same sample ids in phenotype matrix as in list of sample names to select.")
+
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
 
         end
 
@@ -305,15 +313,16 @@ if parsed_args["heatmap"] == "genotype"
             sample_names=col_selectedcolumns
 
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
-            println("Can not select samples with phenotype matrix provided. Please include same sample ids in phenotype matrix as in list of sample names to select.")
-
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
         end
 
         if parsed_args["num_array"] == true
         save_numerical_array(gt_num_array,sample_names,chr_pos_tuple_list,title,output_directory)
         end
 
-        graphic = VariantVisualization.genotype_heatmap2(gt_num_array,title,chrom_label_info,sample_names,chr_pos_tuple_list,y_axis_label_option,x_axis_label_option)
+        graphic = VariantVisualization.genotype_heatmap2_new_legend(gt_num_array,title,chrom_label_info,sample_names,chr_pos_tuple_list,y_axis_label_option,x_axis_label_option)
 
     end
 
@@ -345,9 +354,10 @@ if parsed_args["heatmap"] == "read_depth"
             dp_num_array,col_selectedcolumns = select_columns(parsed_args["select_samples"], dp_num_array, sample_names)
             sample_names=col_selectedcolumns
 
-
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
-            println("Can not select samples with phenotype matrix provided. Please include same sample ids in phenotype matrix as in list of sample names to select.")
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
         end
 
         group_trait_matrix_filename=((parsed_args["group_samples"])[1])
@@ -367,6 +377,7 @@ if parsed_args["heatmap"] == "read_depth"
 
         graphic = VariantVisualization.dp_heatmap2_with_groups(pheno_num_array,title,chrom_label_info,group_label_pack,id_list,chr_pos_tuple_list,y_axis_label_option,trait_label_array,x_axis_label_option,number_rows)
 
+
     else
 
         if parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) != 2
@@ -377,7 +388,9 @@ if parsed_args["heatmap"] == "read_depth"
 
 
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
-            println("Can not select samples with phenotype matrix provided. Please include same sample ids in phenotype matrix as in list of sample names to select.")
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
 
         end
 
@@ -386,12 +399,15 @@ if parsed_args["heatmap"] == "read_depth"
         end
 
         dp_num_array_limited=read_depth_threshhold(dp_num_array)
+
         graphic = VariantVisualization.dp_heatmap2(dp_num_array, title, chrom_label_info, sample_names,chr_pos_tuple_list,y_axis_label_option,x_axis_label_option)
     end
 
     println("Saving read depth heatmap")
 
     save_graphic(graphic,output_directory,save_ext,title,remote_option)
+
+
 end
 
 if parsed_args["heatmap"] == "genotype,read_depth" || parsed_args["heatmap"] == "read_depth,genotype"
@@ -419,11 +435,14 @@ if parsed_args["heatmap"] == "genotype,read_depth" || parsed_args["heatmap"] == 
             sample_names=col_selectedcolumns
 
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
-            println("Can not select samples with phenotype matrix provided. Please include same sample ids in phenotype matrix as in list of sample names to select.")
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
         end
 
         group_trait_matrix_filename=((parsed_args["group_samples"])[1])
         trait_to_group_by = ((parsed_args["group_samples"])[2])
+
         println()
         println("Grouping samples by $trait_to_group_by")
         println()
@@ -447,25 +466,33 @@ if parsed_args["heatmap"] == "genotype,read_depth" || parsed_args["heatmap"] == 
             sample_names=col_selectedcolumns
 
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
-            println("Can not select samples with phenotype matrix provided. Please include same sample ids in phenotype matrix as in list of sample names to select.")
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
 
         end
-                graphic = VariantVisualization.genotype_heatmap2(gt_num_array,title,chrom_label_info,sample_names,chr_pos_tuple_list,y_axis_label_option,x_axis_label_option)
+                graphic = VariantVisualization.genotype_heatmap2_new_legend(gt_num_array,title,chrom_label_info,sample_names,chr_pos_tuple_list,y_axis_label_option,x_axis_label_option)
     end
 
     println("Saving genotype heatmap")
 
     if parsed_args["num_array"] == true
+
     save_numerical_array(gt_num_array,sample_names,chr_pos_tuple_list,title,output_directory)
+
     end
 
     save_graphic(graphic,output_directory,save_ext,title,remote_option)
 
     if parsed_args["heatmap_title"] != nothing
+
         title = "Read_Depth_$(parsed_args["heatmap_title"])"
+
     else
+
         bn = Base.Filesystem.basename(parsed_args["vcf_file"])
         title = "Read_Depth_$bn"
+
     end
 
     dp_num_array,dp_chromosome_labels = combined_all_read_depth_array_functions(sub)
@@ -477,11 +504,17 @@ if parsed_args["heatmap"] == "genotype,read_depth" || parsed_args["heatmap"] == 
     if length(parsed_args["group_samples"]) == 2
 
         if parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) != 2
+
             println("Selecting samples listed in $(parsed_args["select_samples"])")
             dp_num_array,col_selectedcolumns = select_columns(parsed_args["select_samples"], dp_num_array, sample_names)
             sample_names=col_selectedcolumns
 
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
+
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
+
         end
 
         group_trait_matrix_filename=((parsed_args["group_samples"])[1])
@@ -491,7 +524,9 @@ if parsed_args["heatmap"] == "genotype,read_depth" || parsed_args["heatmap"] == 
         dp_num_array_limited=read_depth_threshhold(ordered_dp_num_array)
 
         if parsed_args["num_array"] == true
-        save_numerical_array(ordered_dp_num_array,sample_names,chr_pos_tuple_list,title,output_directory)
+
+            save_numerical_array(ordered_dp_num_array,sample_names,chr_pos_tuple_list,title,output_directory)
+
         end
 
         pheno_num_array,trait_label_array,chrom_label_info = add_pheno_matrix_to_dp_data_for_plotting(dp_num_array_limited,pheno,trait_labels,chrom_label_info,number_rows)
@@ -501,16 +536,23 @@ if parsed_args["heatmap"] == "genotype,read_depth" || parsed_args["heatmap"] == 
     else
 
         if parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) != 2
+
             println("Selecting samples listed in $(parsed_args["select_samples"])")
 
             dp_num_array,col_selectedcolumns = select_columns(parsed_args["select_samples"], dp_num_array, sample_names)
             sample_names=col_selectedcolumns
 
         elseif parsed_args["select_samples"] != nothing && length(parsed_args["group_samples"]) == 2
+
+            #sample selection occurs in this case during sample grouping step.
+            #when using sample grouping and selection options, sample metadata matric should have the same sample names as the selection list.
+            #improvement note for developers: make function to check that sample ids in metadata matrix and sample selection list match. If not, print error and choose to go with metadata matrix sample ids.
         end
 
         if parsed_args["num_array"] == true
-        save_numerical_array(dp_num_array,sample_names,chr_pos_tuple_list,title,output_directory)
+
+            save_numerical_array(dp_num_array,sample_names,chr_pos_tuple_list,title,output_directory)
+
         end
 
         dp_num_array_limited=read_depth_threshhold(dp_num_array)
@@ -574,7 +616,7 @@ elseif parsed_args["avg_dp"] == "variant,sample" || parsed_args["avg_dp"] == "sa
     avg_list = VariantVisualization.avg_dp_variant(dp_num_array)
 
     list = VariantVisualization.list_variant_positions_low_dp(avg_list, dp_chromosome_labels)
-   #DelimitedFiles.writedlm(joinpath("$(parsed_args["output_directory"])","Variant_positions_with_low_dp.csv"),list,",") #turn on when create argument for this and add argument for cutoff e.g. list samples with avg dp <30.
+    #DelimitedFiles.writedlm(joinpath("$(parsed_args["output_directory"])","Variant_positions_with_low_dp.csv"),list,",") #turn on when create argument for this and add argument for cutoff e.g. list samples with avg dp <30.
     #println("The following variants have read depth of less than 15: $list")
 
     bn = Base.Filesystem.basename(parsed_args["vcf_file"])
@@ -599,4 +641,4 @@ elseif parsed_args["avg_dp"] != nothing
     println("--avg_dp flag did not find expected arguments: sample, variant, or sample,variant. Average read depth plot not saved.")
 end
 
-close(reader)
+close(reader) #close the VCF.Reader object to remove it from memory - important for running analysis of same file again and clearing memory space when done
