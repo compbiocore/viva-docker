@@ -41,6 +41,5 @@ RUN chmod 777 /script/viva
 
 WORKDIR /data
 
-CMD ["xvfb-run", "julia"]
 
 ENTRYPOINT ["/script/viva"]
