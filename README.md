@@ -19,11 +19,11 @@ mkdir project_x
 cd project_x
 ```
 
-Make sure to add your project VCF files to that folder. That directory will be mapped to `/notebook/data` inside of the container.
+Make sure to add your project VCF files to that folder. That directory will be mapped to `/home/jovyan/notebook/data` inside of the container.
 
 Then, to run the Jupyter Notebook, from the terminal or Windows PowerShell:
 ```shell
-docker run --rm -p 8888:8888 -e JUPYTER_ENABLE_LAB=yes -v "$PWD":/notebook/data compbiocore/viva-notebook
+docker run --rm -p 8888:8888 -e JUPYTER_ENABLE_LAB=yes -v "$PWD":/home/jovyan/notebook/data compbiocore/viva-notebook
 ```
 Go to `http://0.0.0.0:8888/?token=<enter token here>`
 
