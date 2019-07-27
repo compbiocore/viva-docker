@@ -4,23 +4,33 @@ MAINTAINER Computational Biology Core <cbc-help@brown.edu>
 
 USER root
 
-#Install Cairo and other deps
-
 RUN apt-get update
-RUN apt-get install -y libcairo2-dev \
-                       unzip \
-                       wget \
-                       gettext \
-                       librsvg2-2 \
-                       hdf5-tools \
-                       libgtk2.0-0 \
-                       libgconf-2-4 \
-                       libx11-xcb-dev \
-                       libxtst-dev \
-                       libxss1 \
-                       libnss3 \
-                       libssl1.0-dev \
-                       libasound-dev
+
+RUN apt-get install -yq --no-install-recommends \
+   libcairo2-dev \
+   unzip \
+   wget \
+   gettext \
+   librsvg2-2 \
+   hdf5-tools \
+   libgtk-3-0 \
+   libgconf-2-4 \
+   libx11-xcb-dev \
+   libxtst-dev \
+   libxss1 \
+   libnss3 \
+   libssl1.0-dev \
+   libasound2 \
+   libgtk2.0-0 \
+   libx11-xcb1 \
+   xvfb \
+   x11-utils \
+   libx11-dev \
+   qt5-default \
+   && apt-get clean
+
+
+ENV DISPLAY=:99
 
 #Install Electron
 RUN wget https://github.com/electron/electron/releases/download/v4.0.4/electron-v4.0.4-linux-x64.zip
@@ -58,8 +68,8 @@ USER $NB_UID
 # to the system share location. Avoids problems with runtime UID change not
 # taking effect properly on the .local folder in the jovyan home dir.
 RUN julia -e 'import Pkg; Pkg.update()' && \
-    julia -e "using Pkg; pkg\"add Blink Rsvg PlotlyJS ArgParse GeneticVariation \
-    DelimitedFiles VariantVisualization IJulia InstantiateFromURL\"; pkg\"precompile\"" && \
+    julia -e "using Pkg; pkg\"add VariantVisualization#develop IJulia \
+    InstantiateFromURL\"; pkg\"precompile\"" && \
     # move kernelspec out of home \
     mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \
     chmod -R go+rx $CONDA_DIR/share/jupyter && \
@@ -70,3 +80,5 @@ RUN mkdir $HOME/notebook
 RUN mkdir $HOME/notebook/data
 COPY VIVA.ipynb $HOME/notebook
 WORKDIR $HOME/notebook
+
+ENTRYPOINT ["tini", "-g", "--", "xvfb-run"]
