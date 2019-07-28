@@ -9,6 +9,7 @@ RUN apt-get update
 RUN apt-get install -yq --no-install-recommends \
    libcairo2-dev \
    unzip \
+   bzip2 \
    wget \
    gettext \
    librsvg2-2 \
@@ -21,8 +22,8 @@ RUN apt-get install -yq --no-install-recommends \
    libnss3 \
    libssl1.0-dev \
    libasound2 \
-   libgtk2.0-0 \
    libx11-xcb1 \
+   libgtk2.0-0 \
    xvfb \
    x11-utils \
    libx11-dev \
@@ -68,7 +69,7 @@ USER $NB_UID
 # to the system share location. Avoids problems with runtime UID change not
 # taking effect properly on the .local folder in the jovyan home dir.
 RUN julia -e 'import Pkg; Pkg.update()' && \
-    julia -e "using Pkg; pkg\"add VariantVisualization#develop IJulia \
+    julia -e "using Pkg; pkg\"add PlotlyJS ArgParse IJulia GeneticVariation VariantVisualization \
     InstantiateFromURL\"; pkg\"precompile\"" && \
     # move kernelspec out of home \
     mv $HOME/.local/share/jupyter/kernels/julia* $CONDA_DIR/share/jupyter/kernels/ && \
@@ -82,3 +83,4 @@ COPY VIVA.ipynb $HOME/notebook
 WORKDIR $HOME/notebook
 
 ENTRYPOINT ["tini", "-g", "--", "xvfb-run"]
+CMD ["jupyter", "lab"]

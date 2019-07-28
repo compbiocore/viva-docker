@@ -40,7 +40,7 @@ RUN unzip -q electron-v4.0.4-linux-x64.zip -d atom
 #Install Julia Packages
 
 RUN julia -e 'import Pkg; Pkg.update()' && \
-    julia -e "using Pkg; pkg\"add PlotlyJS ArgParse IJulia GeneticVariation VariantVisualization#develop  \
+    julia -e "using Pkg; pkg\"add PlotlyJS ArgParse IJulia GeneticVariation VariantVisualization  \
     InstantiateFromURL\"; pkg\"precompile\"; pkg\"resolve\""
 
 
