@@ -31,7 +31,7 @@ Go to `http://0.0.0.0:8888/?token=<enter token here>`
 
 To run VIVA Command Line Tool:
 ```shell
-docker run -it --rm -v "$PWD":/data compbiocore/viva-cli arg1 arg2 arg3
+docker run -it --rm -v "$PWD":/data compbiocore/viva-cli /script/viva -f input_file.vcf -o /data [args]
 ```
 
 #### Using Docker Compose
